@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>WebGL Vertex Buffer</title>
+    </head>
+    <body>
+        <h1>WebGL Vertex Buffer</h1>
+        <p>https://egghead.io/lessons/webgl-webgl-vertex-buffers</p>
+
+        <p>A vertex buffer is an array of vertices, stored in memory on
+            the GPU. The origin of the viewport is the center (0,0)
+            (cartersian). 
+        </p>
+
+        <canvas id="canvas" width="600" height="600"></canvas>
+
+        <script>
+            var gl,
+                shaderProgram,
+                vertices;
+
+            initGL();
+            createShaders();
+            createVertices();
+            draw();
+
+            function initGL(){
+                var canvas = document.getElementById("canvas");
+                gl = canvas.getContext("webgl");
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(1, 1, 1, 1);
+            }
+
+            function createShaders(){
+                var vs = `
+                    attribute vec4 coords;
+                    attribute float pointSize;
+
+                    void main(void) {
+                        gl_Position = coords;
+                        gl_PointSize = pointSize;
+                    }
+                `;
+
+                var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vertexShader, vs);
+                gl.compileShader(vertexShader);
+
+                var fs = `
+                    precision mediump float;
+                    uniform vec4 color;
+
+                    void main(void) {
+                        gl_FragColor = color;
+                    }
+                `;
+
+                var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fragmentShader, fs);
+                gl.compileShader(fragmentShader);
+
+                shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                gl.useProgram(shaderProgram);
+            }
+
+            function createVertices(){
+                vertices = [
+                    -0.9, -0.9, 0.0, // x, y, z -- bottom left
+                    0.9, -0.9, 0.0, // bottom right
+                    0.0, 0.9, 0.0 // top middle
+                ];
+
+                // Set this buffer as target for future WebGL Operations
+                // 
+                var buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                // What data to use? We will read often, but won't change often
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+
+                var coords = gl.getAttribLocation(shaderProgram, "coords");
+                // Instead of passing in a single point, we need to pass
+                // A pointer to our buffer. We need to tell WebGL that each vertex
+                // is 3 values, and that they're floats.
+                // gl.vertexAttrib3f(coords, 0, 0, 0); // Pass 3 floating point values
+                gl.vertexAttribPointer(coords, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(coords);   // Attributes muse be enabled 
+                gl.bindBuffer(gl.ARRAY_BUFFER, null); // unbind buffer
+
+                var pointSize = gl.getAttribLocation(shaderProgram, "pointSize");
+                gl.vertexAttrib1f(pointSize, 10);
+
+                var color = gl.getUniformLocation(shaderProgram, "color");
+                gl.uniform4f(color, 0, 1, 0, 1);
+            }
+
+            function draw(){
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.POINTS, 0, 3); // Draw first 3
+            }
+        </script>
+    </body>
+</html>
