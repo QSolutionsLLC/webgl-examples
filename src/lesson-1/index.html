@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>Setting Up WebGL</title>
+    </head>
+    <body>
+        <h1>Setting Up WebGL</h1>
+        <p>https://egghead.io/lessons/webgl-setting-up-webgl</p>
+        <canvas id="canvas" width="600" height="600"></canvas>
+
+        <script>
+            var gl;
+
+            initGL();
+            draw();
+
+            function initGL(){
+                var canvas = document.getElementById("canvas");
+                gl = canvas.getContext("webgl");
+
+                // What part of canvas do we want to use?
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                // Clear canvas to a specific color when we clear
+                gl.clearColor(1, 0, 0, 1); // rgba
+            }
+
+            function draw(){
+                // What to clear? (multiple GL buffers)
+                // Clear the Color buffer
+                gl.clear(gl.COLOR_BUFFER_BIT);
+            }
+        </script>
+    </body>
+</html>
