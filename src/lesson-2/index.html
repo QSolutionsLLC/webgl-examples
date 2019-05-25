@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>WebGL Shaders</title>
+    </head>
+    <body>
+        <h1>WebGL Shaders</h1>
+        <p>https://egghead.io/lessons/webgl-introduction-to-webgl-shaders</p>
+        <canvas id="canvas" width="600" height="600"></canvas>
+
+        <p>
+            <strong>Vertices</strong> - Points in a 3D space.
+        </p>
+        <p>
+            <strong>Shaders</strong> - How vertices are interpreted and render.
+        </p>
+
+        <p>
+            Shaders written in "OpenGL Shader Language" (GLSL). JS Strings compiled into functional shader code.
+        </p>
+
+        <script>
+            var gl,
+                shaderProgram;
+
+            initGL();
+            createShaders();
+            draw();
+
+            function initGL(){
+                var canvas = document.getElementById("canvas");
+                gl = canvas.getContext("webgl");
+
+                // What part of canvas do we want to use?
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                // Clear canvas to a specific color when we clear
+                gl.clearColor(1, 1, 1, 1); // rgba
+            }
+
+            // Vertex Shader - How vertices are translated, scaled, otherwise transformed
+            // Fragment Shader - Colors of pixels drawn by vertices
+            function createShaders(){
+                // Executed one time for each vertex to passed in array
+                // Assign result to gl_position
+                // Hardcoded for now
+                // vec4 --> x, y, z, w
+                // 10px pointsize
+                var vs = `
+                    void main(void) {
+                        gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+                        gl_PointSize = 10.0;
+                    }
+                `;
+
+                var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vertexShader, vs);
+                gl.compileShader(vertexShader);
+
+                // Running single time, for every single fragment that is rendered
+                var fs = `
+                    void main(void) {
+                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                    }
+                `;
+
+                var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fragmentShader, fs);
+                gl.compileShader(fragmentShader);
+
+                // Create a program that links the two together;
+                // Tell WebGL to use the program
+                shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                gl.useProgram(shaderProgram);
+            }
+
+            function draw(){
+                // What to clear? (multiple GL buffers)
+                // Clear the Color buffer
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                // Draw an array of vertices
+                gl.drawArrays(gl.POINTS, 0, 1); // mode, offset, count
+            }
+        </script>
+    </body>
+</html>
