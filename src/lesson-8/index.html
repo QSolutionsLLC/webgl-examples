@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>User Interaction in WebGL</title>
+    </head>
+    <body>
+        <h1>User Interaction in WebGL</h1>
+        <p>https://egghead.io/lessons/webgl-user-interaction-in-webgl</p>
+
+
+        <canvas id="canvas" width="600" height="600"></canvas>
+
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec4 coords;
+            attribute float pointSize;
+
+            void main(void) {
+                gl_Position = coords;
+                gl_PointSize = pointSize;
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            uniform vec4 color;
+
+            void main(void) {
+                gl_FragColor = color;
+            }
+        </script>
+
+        <script>
+            var gl,
+                shaderProgram,
+                vertices,
+                vertexCount = 5000,
+                mouseX = 0,
+                mouseY = 0;
+
+            canvas.addEventListener("mousemove", function(event){
+                mouseX = map(event.clientX, 0, canvas.width, -1, 1);
+                mouseY = map(event.clientY, 0, canvas.height, 1, -1);
+            });
+
+            // Map our canvas coords (0 to 600) to
+            // WebGL coords (-1 to 1)
+            function map(value, minSrc, maxSrc, minDst, maxDst){
+                return (value - minSrc) / (maxSrc - minSrc) * (maxDst - minDst) + minDst;
+            }
+
+            initGL();
+            createShaders();
+            createVertices();
+            draw();
+
+            function initGL(){
+                var canvas = document.getElementById("canvas");
+                gl = canvas.getContext("webgl");
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(1, 1, 1, 1);
+            }
+
+            function createShaders(){
+                var vertexShader = getShader(gl, "shader-vs");
+                var fragmentShader = getShader(gl, "shader-fs");
+
+                shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                gl.useProgram(shaderProgram);
+            }
+
+            function createVertices(){
+                vertices = [];
+
+                for(var i = 0; i < vertexCount; i++){
+                    vertices.push(Math.random() * 2 - 1);
+                    vertices.push(Math.random() * 2 - 1);
+                }
+
+                var buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                // NOTE: New Usage Mode
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+
+                var coords = gl.getAttribLocation(shaderProgram, "coords");
+                // gl.vertexAttribPointer(coords, 3, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(coords, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(coords);
+                // gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                var pointSize = gl.getAttribLocation(shaderProgram, "pointSize");
+                gl.vertexAttrib1f(pointSize, 3);
+
+                var color = gl.getUniformLocation(shaderProgram, "color");
+                gl.uniform4f(color, 0, 1, 0, 1);
+            }
+
+            function draw(){
+                // Update vertices slightly
+                const numElements = vertexCount * 2; // 5,000 * (x, y) 
+                for(var i = 0; i < numElements; i += 2){
+                    // pythagorean theorem
+                    var dx = vertices[i] - mouseX,
+                        dy = vertices[i + 1] - mouseY,
+                        dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if(dist < 0.2){
+                        vertices[i] = mouseX + dx / dist * 0.2;
+                        vertices[i + 1] = mouseY + dy / dist * 0.2;
+                    } else {
+                        vertices[i] += Math.random() * 0.01 - 0.005;
+                        vertices[i + 1] += Math.random() * 0.01 - 0.005;
+                    }
+                }
+
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.POINTS, 0, vertexCount)
+
+                // Call draw, over and over, synced with browsers draw
+                requestAnimationFrame(draw);
+            }
+
+            function getShader(gl, id){
+                var shaderScript,
+                    theSource,
+                    currentChild,
+                    shader;
+
+                shaderScript = document.getElementById(id);
+
+                if(!shaderScript) {
+                    console.warn(`unable to find shaderscript: ${id}`)
+                    return null;
+                }
+
+                theSource = "";
+                currentChild = shaderScript.firstChild;
+
+                while(currentChild){
+                    if(currentChild.nodeType == currentChild.TEXT_NODE) {
+                        theSource += currentChild.textContent;
+                    }
+
+                    currentChild = currentChild.nextSibling;
+                }
+                if( shaderScript.type == "x-shader/x-fragment") {
+                    shader = gl.createShader(gl.FRAGMENT_SHADER);
+                }else if(shaderScript.type = "x-shader/x-vertex") {
+                    shader = gl.createShader(gl.VERTEX_SHADER);
+                }else{
+                    console.warn('unknown shader type');
+                    return null;
+                }
+                gl.shaderSource(shader, theSource);
+
+                // Compile the shader program
+                gl.compileShader(shader);
+
+                // Verify compiled successfully
+                if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+                    return null;
+                }
+
+                return shader;
+            }
+        </script>
+    </body>
+</html>
