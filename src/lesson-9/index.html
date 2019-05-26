@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>3D Transformation Matrices in WebGL</title>
+    </head>
+    <body>
+        <h1>3D Transformation Matrices in WebGL</h1>
+        <p>https://egghead.io/lessons/webgl-3d-transformation-matrices-in-webgl</p>
+
+        <p>Multiply transformation matrix by vertex matrix to apply transformations.
+            If we want to transform in more than one way, you can multiply multiple transformation
+            matrixes and then multiply the result against the vertex matrix.
+            <br />
+            The Vertex matrix should have the same number of points as the transformation matrix
+            has columns. Hence x, y, z, w.
+            <br />
+            We represent matrices as arrays. WebGL uses column major.
+        </p>
+
+        <canvas id="canvas" width="600" height="600"></canvas>
+
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec4 coords;
+            attribute float pointSize;
+            uniform mat4 transformMatrix;
+
+            void main(void) {
+                gl_Position = transformMatrix * coords;
+                gl_PointSize = pointSize;
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            uniform vec4 color;
+
+            void main(void) {
+                gl_FragColor = color;
+            }
+        </script>
+
+        <script>
+            var gl,
+                shaderProgram,
+                vertices,
+                angle = 0;
+
+            initGL();
+            createShaders();
+            createVertices();
+            draw();
+
+            function initGL(){
+                var canvas = document.getElementById("canvas");
+                gl = canvas.getContext("webgl");
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(1, 1, 1, 1);
+            }
+
+            function createShaders(){
+                var vertexShader = getShader(gl, "shader-vs");
+                var fragmentShader = getShader(gl, "shader-fs");
+
+                shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                gl.useProgram(shaderProgram);
+            }
+
+            function createVertices(){
+                vertices = [
+                    -0.9, -0.9, 0.0,
+                    0.9, -0.9, 0.0,
+                    0.0, 0.9, 0.0 
+                ];
+
+                var buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+                var coords = gl.getAttribLocation(shaderProgram, "coords");
+                gl.vertexAttribPointer(coords, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(coords);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                var pointSize = gl.getAttribLocation(shaderProgram, "pointSize");
+                gl.vertexAttrib1f(pointSize, 10);
+
+                var color = gl.getUniformLocation(shaderProgram, "color");
+                gl.uniform4f(color, 0, 1, 0, 1);
+            }
+
+            function draw(){
+                //rotateZ(angle += 0.01);
+                rotateY(angle += 0.01);
+
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+                requestAnimationFrame(draw);
+            }
+
+            function rotateZ(angle) {
+                var cos = Math.cos(angle),
+                sin = Math.sin(angle),
+                matrix = new Float32Array([
+                    cos, sin, 0, 0,
+                    -sin, cos, 0, 0,
+                    0, 0, 1, 0,   
+                    0, 0, 0, 1
+                ]);
+
+                var transformMatrix = gl.getUniformLocation(shaderProgram, "transformMatrix");
+                // Pass Matrix (4x4), float, vector (not 16-seperate values)
+                // `bool` parameter asks if we want to "transpose" to column major
+                // Actually `required` to be set to false. If using OpenGL, this could be
+                // used, but only here to match OpenGL interface
+                gl.uniformMatrix4fv(transformMatrix, false, matrix);
+            }
+
+            function rotateY(angle) {
+                var cos = Math.cos(angle),
+                sin = Math.sin(angle),
+                matrix = new Float32Array([
+                    cos, 0, sin, 0,
+                    0, 1, 0, 0,
+                    -sin, 0, cos, 0,   
+                    0, 0, 0, 1
+                ]);
+
+                var transformMatrix = gl.getUniformLocation(shaderProgram, "transformMatrix");
+                gl.uniformMatrix4fv(transformMatrix, false, matrix);
+            }
+
+            // MDN 
+            // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+            // This code is no longer here, but is mentioned and referenced in the video
+            // There may be better options today -- this does still work.
+            function getShader(gl, id){
+                var shaderScript,
+                    theSource,
+                    currentChild,
+                    shader;
+
+                shaderScript = document.getElementById(id);
+
+                if(!shaderScript) {
+                    console.warn(`unable to find shaderscript: ${id}`)
+                    return null;
+                }
+
+                theSource = "";
+                currentChild = shaderScript.firstChild;
+
+                while(currentChild){
+                    if(currentChild.nodeType == currentChild.TEXT_NODE) {
+                        theSource += currentChild.textContent;
+                    }
+
+                    currentChild = currentChild.nextSibling;
+                }
+                if( shaderScript.type == "x-shader/x-fragment") {
+                    shader = gl.createShader(gl.FRAGMENT_SHADER);
+                }else if(shaderScript.type = "x-shader/x-vertex") {
+                    shader = gl.createShader(gl.VERTEX_SHADER);
+                }else{
+                    console.warn('unknown shader type');
+                    return null;
+                }
+                gl.shaderSource(shader, theSource);
+
+                // Compile the shader program
+                gl.compileShader(shader);
+
+                // Verify compiled successfully
+                if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+                    return null;
+                }
+
+                return shader;
+            }
+        </script>
+    </body>
+</html>
