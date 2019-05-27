@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Experimental GLSL Signed Distance Function Demo </title>
+    <script src="jquery-1.11.0.min.js"></script>
+    <link rel="stylesheet" href="glimp.css"/>
+</head>
+
+<body>
+    <h1>GLSL Signed Distance Function Demo</h1>
+    <a href="http://pieper.github.io/sites/glimp/sdf.html">Adapted From Pieper's Demo Here</a>
+
+    <h2>Processed image</h2>
+    <p><strong>Click and drag</strong> in image to center seed point (selecting target intensity value) and adjust seed radius.</p>
+
+    <div id="outputContainer">
+        <canvas id="renderCanvas"></canvas>
+        <p id="log">Log output...<p>
+        <table id="parameters">
+            <tr>
+                <th style="text-align: left">Iterations</th>
+                <th style="text-align: left">Epsilon</th>
+            </tr>
+            <tr>
+                <td><input type="number" min="1" max="10000" value="500" step="1" id="numberOfIterations"
+                        title="Adjust the number of iterations of the distance field."></td>
+                <!--input type="number" min="0.0" max="1.0" value="0.5" step="0.01" id="alpha" disabled="true"
+                        title="Control the influence of the speed and curvature functions."></td-->
+                <td><input type="number" min="0.0" max="1.0" value="0.2" step="0.01" id="epsilon"
+                        title="Adjust the epsilon of the speed function."></td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>Source image and seed region</h2>
+    <div class="overlayWrapper">
+        <img id="sourceImage" class="coveredImage" class="drawable" src="lung-lesion512.png"/>
+        <canvas class="overlayCanvas"></canvas>
+    </div>
+
+    <script src="glsl-utils.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
