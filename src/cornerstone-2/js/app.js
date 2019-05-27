@@ -48,18 +48,59 @@ async function main() {
     var sourceTextureImage; // = new Image();
     var sourceTexture = gl.createTexture();
     var setupSourceTexture = function () {
+
+        console.log('sourceTextureImage', sourceTextureImage);
+
+        const enabledElement = document.querySelector("#cornerstone-element");
+        const myImage = cornerstone.getImage(enabledElement);
+        console.log('cornerstoneImage: ', myImage);
+        const pixelData = myImage.getPixelData();
+
+
         gl.activeTexture( gl.TEXTURE0 );
-        gl.bindTexture( gl.TEXTURE_2D, sourceTexture );
-        gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
-        gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceTextureImage );
+        // OLD
+        // gl.bindTexture( gl.TEXTURE_2D, sourceTexture );
+        // gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
+        //
+        //
+        // TODO
+
+        // Create a texture.
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        
+        // fill texture with 3x2 pixels
+        const level = 0;
+        // May need to be gl.LUMINANCE_ALPHA
+        const internalFormat = gl.LUMINANCE_ALPHA;
+        const width = myImage.width;
+        const height = myImage.height;
+        const border = 0;
+        const format = gl.LUMINANCE_ALPHA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = new Uint8Array(pixelData);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border,
+                    format, type, data);
+    
+
+        //
+        //
+        // OLD
+        // gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceTextureImage );
+        // set the filtering so we don't need mips and it's not filtered
         gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
         gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR );
         gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
         gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
         //gl.bindTexture(gl.TEXTURE_2D, null); // is this call needed? jvm
 
-        sourceTextureSize[ 0 ] = sourceTextureImage.width;
-        sourceTextureSize[ 1 ] = sourceTextureImage.height;
+        // OLD
+        // sourceTextureSize[ 0 ] = sourceTextureImage.width;
+        // sourceTextureSize[ 1 ] = sourceTextureImage.height;
+
+        // NEW
+        sourceTextureSize[ 0 ] = myImage.width;
+        sourceTextureSize[ 1 ] = myImage.height;
     };
 
     // textures and framebuffers for iteratively calculating distance field
@@ -313,6 +354,6 @@ async function main() {
     }
 
     // once document is loaded, then load images, set up textures and framebuffers, and render
-    setupInterface();
+    setTimeout(() => setupInterface(), 3000);
 }
 main();
