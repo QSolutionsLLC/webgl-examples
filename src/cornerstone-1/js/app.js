@@ -48,6 +48,17 @@ async function main() {
     var sourceTextureImage; // = new Image();
     var sourceTexture = gl.createTexture();
     var setupSourceTexture = function () {
+
+        console.log('sourceTextureImage', sourceTextureImage);
+
+        const enabledElement = document.querySelector("#cornerstone-element");
+        const myImage = cornerstone.getImage(enabledElement);
+        console.log('cornerstoneImage: ', myImage);
+        const pixelData = myImage.getPixelData();
+
+        // TODO
+
+
         gl.activeTexture( gl.TEXTURE0 );
         gl.bindTexture( gl.TEXTURE_2D, sourceTexture );
         gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
