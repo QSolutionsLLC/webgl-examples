@@ -2,8 +2,8 @@
 
 const shaderMetaList = [
     {
-        vertexShaderFilename: 'vertex-shader.glsl',
-        fragmentShaderFilename: 'fragment-shader.glsl',
+        vertexShaderUri: 'shaders/vertex-shader.glsl',
+        fragmentShaderUri: 'shaders/fragment-shader.glsl',
     }
 ];   
 

@@ -7,14 +7,14 @@ const SHADER_TYPES = {
  * 
  * @param {*} gl 
  * @param {Object} shaderMeta
- * @param {String} shaderMeta.vertexShaderFilename
- * @param {String} shaderMeta.fragmentShaderFilename
+ * @param {String} shaderMeta.vertexShaderUri
+ * @param {String} shaderMeta.fragmentShaderUri
  */
 async function createProgramFromShaders(gl, shaderMeta)
 {
     const program = gl.createProgram();
-    const vertexShader = await fetchAndCompileShader(gl, shaderMeta.vertexShaderFilename, SHADER_TYPES.VERTEX)
-    const fragmentShader = await fetchAndCompileShader(gl, shaderMeta.fragmentShaderFilename, SHADER_TYPES.FRAGMENT)
+    const vertexShader = await fetchAndCompileShader(gl, shaderMeta.vertexShaderUri, SHADER_TYPES.VERTEX)
+    const fragmentShader = await fetchAndCompileShader(gl, shaderMeta.fragmentShaderUri, SHADER_TYPES.FRAGMENT)
 
     // gl.getProgramInfoLog(program);
     gl.attachShader(program, vertexShader);
@@ -33,12 +33,12 @@ async function createProgramFromShaders(gl, shaderMeta)
 /**
  * 
  * @param {*} gl 
- * @param {*} shaderFilename 
+ * @param {*} shaderUri
  * @param {*} shaderType 
  */
-async function fetchAndCompileShader(gl, shaderFilename, shaderType){
+async function fetchAndCompileShader(gl, shaderUri, shaderType){
     // Fetch
-    const response = await fetch(shaderFilename);
+    const response = await fetch(shaderUri);
     const shaderSource = await response.text();
 
     // Create & Compile
@@ -50,7 +50,7 @@ async function fetchAndCompileShader(gl, shaderFilename, shaderType){
 
     // TODO: Throw
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.warn(`Error compiling shader: ${shaderMeta.filename}`)
+        console.warn(`Error compiling shader: ${shaderUri}`)
         console.warn(gl.getShaderInfoLog(shader));
     }
 
